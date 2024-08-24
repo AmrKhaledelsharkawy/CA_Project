@@ -29,6 +29,15 @@ typedef struct { // instruction will be short int (16 bits) -- PC will be int (3
     uint8_t sreg; // Status Register
 } CPU;
 
+
+
+
+
+
+
+
+
+
 typedef struct {
     short int instruction;
     
@@ -87,7 +96,7 @@ void print_cpu_state(CPU *cpu) {
 }
 
 void run_pipeline(CPU *cpu) {
-    // TODO: Implement pipeline running
+    CARRY_FLAG++;
 }
 
 void fetch(CPU *cpu) {
