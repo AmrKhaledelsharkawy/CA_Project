@@ -96,7 +96,7 @@ void print_cpu_state(CPU *cpu) {
 }
 
 void run_pipeline(CPU *cpu) {
-    // TODO: Implement pipeline running
+    CARRY_FLAG++;
 }
 
 void fetch(CPU *cpu) {
