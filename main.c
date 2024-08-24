@@ -20,7 +20,7 @@ typedef struct {
     int active;
 } PipelineStage;
 
-typedef struct {
+typedef struct { // instruction will be short int (16 bits) -- PC will be int (32 bits)
     uint16_t instruction_memory[INSTRUCTION_MEMORY_SIZE];
     uint8_t data_memory[DATA_MEMORY_SIZE];
     uint8_t registers[REGISTER_COUNT];
@@ -30,20 +30,25 @@ typedef struct {
 } CPU;
 
 typedef struct {
+    short int instruction;
+    
+} fetchedInstruction;
+typedef struct {
     uint8_t opcode;
     uint8_t rd;
     uint8_t rs1;
-    uint8_t rs2;
     uint8_t immediate;
 } DecodedInstruction;
+fetchedInstruction CurrentInstruction = {0};
+DecodedInstruction IR = {0, 0, 0, 0};
 
 // Function prototypes
-void initialize_cpu(CPU *cpu);
-void load_program(CPU *cpu, const char *filename);
-void print_cpu_state(CPU *cpu);
-void run_pipeline(CPU *cpu);
-void fetch(CPU *cpu);
-void decode(CPU *cpu);
+void initialize_cpu(CPU *cpu); // MALAK 
+void load_program(CPU *cpu, const char *filename); // Fares
+void print_cpu_state(CPU *cpu); // Fares
+void run_pipeline(CPU *cpu); // marwan amr 
+void fetch(CPU *cpu); //Noor to to use the PC to acces the instruction memory and fetch the instruction into the current instruction register
+void decode(CPU *cpu);//Noor to decode the instruction in the current instruction register and store the result in the IR
 void execute(CPU *cpu);
 DecodedInstruction decode_instruction(uint16_t instruction);
 void update_flags(CPU *cpu, uint8_t result);
