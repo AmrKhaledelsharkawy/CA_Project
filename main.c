@@ -68,7 +68,7 @@ void execute_str(CPU *cpu, DecodedInstruction instr);
 int main() {
     CPU cpu;
     initialize_cpu(&cpu);
-    load_program(&cpu, "program.txt"); // Replace with your program file
+    load_program(&cpu, "program2.txt"); // Replace with your program file
     run_pipeline(&cpu);
     return 0;
 }
