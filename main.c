@@ -76,6 +76,31 @@ int main() {
 // Empty function implementations for milestone one
 void initialize_cpu(CPU *cpu) {
     // TODO: Implement CPU initialization
+    (*cpu).pc=0;
+    int num_inst=load_program(cpu);
+    int total_clk_cycles=3+((num_inst - 1)*1);
+    int current_cycle=0;
+    while(current_cycle<=total_clk_cycles){
+        printf("Cycle %d:\n, count+1");
+
+        if(current_cycle<num_inst){ //keep fetching
+            unsigned short instruction=fetch(cpu);
+            printf("Fetching instruction: 0x%X at PC=%d\n", instruction, (*cpu)pc);
+            (*cpu).pc++;
+        }
+        if(current_cycle>0 && current_cycle<=num_inst){ // decoding
+            unsigned short decoding_inst=(*cpu).instruction_memory[((*cpu).pc)-1];
+            printf("Decoding instruction: 0x%X \n", decoding_inst);
+            decode(decoding_inst);
+        }
+        if(current_cycle>1 && current_cycle<=num_inst){//excuting
+            unsigned short executing_inst=(*cpu).instruction_memory[((*cpu).pc)-2];
+            printf("Executing instruction: 0x%X \n", executing_inst);
+            execute(executing_inst);
+        }
+        current_cycle++;
+        
+    }
 }
 
 void load_program(CPU *cpu, const char *filename) {
