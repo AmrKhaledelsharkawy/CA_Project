@@ -92,11 +92,13 @@ void initialize_cpu(CPU *cpu) {
             unsigned short decoding_inst=(*cpu).instruction_memory[((*cpu).pc)-1];
             printf("Decoding instruction: 0x%X \n", decoding_inst);
             decode(decoding_inst);
+            pc++;
         }
         if(current_cycle>1 && current_cycle<=num_inst){//excuting
             unsigned short executing_inst=(*cpu).instruction_memory[((*cpu).pc)-2];
             printf("Executing instruction: 0x%X \n", executing_inst);
             execute(executing_inst);
+            pc++;
         }
         current_cycle++;
         
