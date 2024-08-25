@@ -52,6 +52,31 @@ void decode(CPU *cpu);//Noor to decode the instruction in the current instructio
 void execute(CPU *cpu);
 DecodedInstruction decode_instruction(uint16_t instruction);
 void update_flags(CPU *cpu, uint8_t result);
+
+//Marwan ALU approach: 
+//int ALU(int operation, int operandA, int operandB)
+//{
+	//int output = 0;
+	//zeroFlag = 0;
+	//switch (operation)
+	//{
+
+	//case 0: // ADD
+	//	output = (int)(unsigned int)operandA + operandB;
+	//	break;
+
+	//case 1: // SUB
+	//	output = (int)(unsigned int)operandA - operandB;
+	//	break;
+
+	//case 2: // MUL
+	//	output = (int)(unsigned int)operandA * operandB;
+	//	break;
+
+    //default:
+    //  break;
+    //}
+
 void execute_add(CPU *cpu, DecodedInstruction instr);
 void execute_sub(CPU *cpu, DecodedInstruction instr);
 void execute_mul(CPU *cpu, DecodedInstruction instr);
