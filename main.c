@@ -77,7 +77,8 @@ int main() {
 void initialize_cpu(CPU *cpu) {
     // TODO: Implement CPU initialization
     (*cpu).pc=0;
-    int num_inst=load_program(cpu);
+    int num_inst=  0 ;
+    ioad_program(cpu);
     int total_clk_cycles=3+((num_inst - 1)*1);
     int current_cycle=0;
     while(current_cycle<=total_clk_cycles){
