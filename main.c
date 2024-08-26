@@ -27,6 +27,8 @@ typedef struct { // instruction will be short int (16 bits) -- PC will be int (3
     uint16_t pc;
     PipelineStage fetch, decode, execute;
     uint8_t sreg; // Status Register
+    fetchedInstruction CurrentInstruction;
+    DecodedInstruction IR;
 } CPU;
 
 typedef struct {
@@ -39,8 +41,7 @@ typedef struct {
     uint8_t rs1;
     uint8_t immediate;
 } DecodedInstruction;
-fetchedInstruction CurrentInstruction = {0};
-DecodedInstruction IR = {0, 0, 0, 0};
+
 
 // Function prototypes
 void initialize_cpu(CPU *cpu); // MALAK 
@@ -75,33 +76,7 @@ int main() {
 
 // Empty function implementations for milestone one
 void initialize_cpu(CPU *cpu) {
-    // TODO: Implement CPU initialization
-    (*cpu).pc=0;
-    int num_inst=  0 ;
-    ioad_program(cpu);
-    int total_clk_cycles=3+((num_inst - 1)*1);
-    int current_cycle=0;
-    while(current_cycle<=total_clk_cycles){
-        printf("Cycle %d:\n, count+1");
-
-        if(current_cycle<num_inst){ //keep fetching
-            unsigned short instruction=fetch(cpu);
-            printf("Fetching instruction: 0x%X at PC=%d\n", instruction, (*cpu)pc);
-            (*cpu).pc++;
-        }
-        if(current_cycle>0 && current_cycle<=num_inst){ // decoding
-            unsigned short decoding_inst=(*cpu).instruction_memory[((*cpu).pc)-1];
-            printf("Decoding instruction: 0x%X \n", decoding_inst);
-            decode(decoding_inst);
-        }
-        if(current_cycle>1 && current_cycle<=num_inst){//excuting
-            unsigned short executing_inst=(*cpu).instruction_memory[((*cpu).pc)-2];
-            printf("Executing instruction: 0x%X \n", executing_inst);
-            execute(executing_inst);
-        }
-        current_cycle++;
-        
-    }
+    
 }
 
 void load_program(CPU *cpu, const char *filename) {
@@ -125,7 +100,46 @@ void decode(CPU *cpu) {
 }
 
 void execute(CPU *cpu) {
-    // TODO: Implement execute stage
+    cpu->execute.active = 1;
+    switch (cpu->IR.opcode) {
+        case 0x00:
+            execute_add(cpu, cpu->IR);
+            break;
+        case 0x01:
+            execute_sub(cpu, cpu->IR);
+            break;
+        case 0x02:
+            execute_mul(cpu, cpu->IR);
+            break;
+        case 0x03:
+            execute_movi(cpu, cpu->IR);
+            break;
+        case 0x04:
+            execute_beqz(cpu, cpu->IR);
+            break;
+        case 0x05:
+            execute_andi(cpu, cpu->IR);
+            break;
+        case 0x06:
+            execute_eor(cpu, cpu->IR);
+            break;
+        case 0x07:
+            execute_br(cpu, cpu->IR);
+            break;
+        case 0x08:
+            execute_sal(cpu, cpu->IR);
+            break;
+        case 0x09:
+            execute_sar(cpu, cpu->IR);
+            break;
+        case 0x0A:
+            execute_ldr(cpu, cpu->IR);
+            break;
+        case 0x0B:
+            execute_str(cpu, cpu->IR);
+            break;
+    }
+
 }
 
 DecodedInstruction decode_instruction(uint16_t instruction) {
@@ -160,28 +174,46 @@ void execute_beqz(CPU *cpu, DecodedInstruction instr) {
 
 void execute_andi(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement ANDI instruction
+
+    cpu->registers[instr.rd] = cpu->registers[instr.rd] & instr.immediate;
+    printf("ANDI: R%d = R%d & 0x%02X = 0x%02X\n", instr.rd, instr.rd, instr.immediate, cpu->registers[instr.rd]);
+    
 }
 
 void execute_eor(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement EOR instruction
+    cpu->registers[instr.rd] = cpu->registers[instr.rd] ^ cpu->registers[instr.rs1];
+    printf("EOR: R%d = R%d ^ 0x%02X = 0x%02X\n", instr.rd, instr.rd, instr.immediate, cpu->registers[instr.rd]);
+    
 }
 
 void execute_br(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement BR instruction
+        cpu->pc = cpu->registers[instr.rs1];
+        printf("BR: PC = R%d -> 0x%04X\n", instr.rs1, cpu->pc);
 }
 
 void execute_sal(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement SAL instruction
+        cpu->registers[instr.rd] <<= instr.immediate;
+        printf("SAL: R%d = R%d << %d -> 0x%02X\n", instr.rd, instr.rd, instr.immediate, cpu->registers[instr.rd]);
+
 }
 
 void execute_sar(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement SAR instruction
+        cpu->registers[instr.rd] >>= instr.immediate;
+        printf("SAR: R%d = R%d >> %d -> 0x%02X\n", instr.rd, instr.rd, instr.immediate, cpu->registers[instr.rd]);
 }
 
 void execute_ldr(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement LDR instruction
+    cpu->registers[instr.rd] = cpu->data_memory[cpu->registers[instr.rs1] + instr.immediate];
+    printf("LDR: R%d = MEM[R%d + 0x%02X] = 0x%02X\n", instr.rd, instr.rs1, instr.immediate, cpu->registers[instr.rd]);
 }
 
 void execute_str(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement STR instruction
+    cpu->data_memory[cpu->registers[instr.rs1] + instr.immediate] = cpu->registers[instr.rd];
+    printf("STR: MEM[R%d + 0x%02X] = R%d = 0x%02X\n", instr.rs1, instr.immediate, instr.rd, cpu->registers[instr.rd]);
 }
