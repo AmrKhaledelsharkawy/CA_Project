@@ -45,6 +45,7 @@ typedef struct { // instruction will be short int (16 bits) -- PC will be int (3
    // DecodedInstruction IR;
     IFID IFID;
     IDEX IDEX;
+    int instruction_count;
 } CPU;
 
 
@@ -115,15 +116,68 @@ void initialize_cpu(CPU *cpu) {
 }
 
 void load_program(CPU *cpu, const char *filename) {
-    // TODO: Implement program loading
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        printf("Error: Unable to open file %s\n", filename);
+        return;
+    }
+
+    char line[256];
+    int instruction_index = 0;
+
+    while (fgets(line, sizeof(line), file)) {
+        if (instruction_index >= INSTRUCTION_MEMORY_SIZE) {
+            printf("Error: Program too large to fit in instruction memory.\n");
+            break;
+        }
+
+        char opcode[10];
+        uint8_t rd, rs1, immediate;
+        uint16_t binary_instruction = 0;
+
+        // Parse each instruction based on its format
+        if (sscanf(line, "ADD R%hhu R%hhu", &rd, &rs1) == 2) {
+            binary_instruction = (0x00 << 12) | (rd << 8) | (rs1 << 4);
+        } else if (sscanf(line, "SUB R%hhu R%hhu", &rd, &rs1) == 2) {
+            binary_instruction = (0x01 << 12) | (rd << 8) | (rs1 << 4);
+        } else if (sscanf(line, "MUL R%hhu R%hhu", &rd, &rs1) == 2) {
+            binary_instruction = (0x02 << 12) | (rd << 8) | (rs1 << 4);
+        } else if (sscanf(line, "MOVI R%hhu %hhu", &rd, &immediate) == 2) {
+            binary_instruction = (0x03 << 12) | (rd << 8) | immediate;
+        } else if (sscanf(line, "BEQZ R%hhu %hhu", &rd, &immediate) == 2) {
+            binary_instruction = (0x04 << 12) | (rd << 8) | immediate;
+        } else if (sscanf(line, "ANDI R%hhu %hhu", &rd, &immediate) == 2) {
+            binary_instruction = (0x05 << 12) | (rd << 8) | immediate;
+        } else if (sscanf(line, "EOR R%hhu R%hhu", &rd, &rs1) == 2) {
+            binary_instruction = (0x06 << 12) | (rd << 8) | (rs1 << 4);
+        } else if (sscanf(line, "BR R%hhu", &rd) == 1) {
+            binary_instruction = (0x07 << 12) | (rd << 8);
+        } else if (sscanf(line, "SAL R%hhu %hhu", &rd, &immediate) == 2) {
+            binary_instruction = (0x08 << 12) | (rd << 8) | immediate;
+        } else if (sscanf(line, "SAR R%hhu %hhu", &rd, &immediate) == 2) {
+            binary_instruction = (0x09 << 12) | (rd << 8) | immediate;
+        } else if (sscanf(line, "LDR R%hhu %hhu", &rd, &immediate) == 2) {
+            binary_instruction = (0x0A << 12) | (rd << 8) | immediate;
+        } else {
+            printf("Error: Unrecognized instruction \"%s\"\n", line);
+            continue;
+        }
+
+        // Store the binary instruction in the instruction memory
+        cpu->instruction_memory[instruction_index++] = binary_instruction;
+    }
+
+    fclose(file);
+    printf("Program loaded successfully with %d instructions.\n", instruction_index);
 }
+
 
 void print_cpu_state(CPU *cpu) {
     // TODO: Implement CPU state printing
 }
 
 void run_pipeline(CPU *cpu) {
-    // TODO: Implement pipeline running
+
 }
 
 void fetch(CPU *cpu) {
