@@ -20,40 +20,40 @@ typedef struct {
     int active;
 } PipelineStage;
 
-typedef struct 
-{
-    short int instruction
-}IFID;
+typedef struct {
+    uint16_t current_Instruction;
+    int is_stall;
+} Instruction;
 
-typedef struct 
-{
-    int opcode;
+typedef struct {
+    uint16_t instruction;
+} IFID;
+
+typedef struct {
+    int isempty; // 1 if the stage is empty and 0 if it is full
+    uint8_t opcode;
     uint8_t rd;
     uint8_t rs1;
     uint8_t immediate;
-}IDEX;
+} IDEX;
 
-
-typedef struct { // instruction will be short int (16 bits) -- PC will be int (32 bits)
-    uint16_t instruction_memory[INSTRUCTION_MEMORY_SIZE];
+typedef struct {
+    Instruction instruction_memory[INSTRUCTION_MEMORY_SIZE];
     uint8_t data_memory[DATA_MEMORY_SIZE];
     uint8_t registers[REGISTER_COUNT];
     uint16_t pc;
     PipelineStage fetch, decode, execute;
     uint8_t sreg; // Status Register
-    //fetchedInstruction CurrentInstruction;
-   // DecodedInstruction IR;
     IFID IFID;
     IDEX IDEX;
     int instruction_count;
+    int stall_flag; // Flag to indicate control hazard stall
 } CPU;
 
-
-
 typedef struct {
-    short int instruction;
-    
+    uint16_t instruction;
 } fetchedInstruction;
+
 typedef struct {
     uint8_t opcode;
     uint8_t rd;
@@ -61,14 +61,13 @@ typedef struct {
     uint8_t immediate;
 } DecodedInstruction;
 
-
 // Function prototypes
-void initialize_cpu(CPU *cpu); // MALAK 
-void load_program(CPU *cpu, const char *filename); // Fares
-void print_cpu_state(CPU *cpu); // Fares
-void run_pipeline(CPU *cpu); // marwan amr 
-void fetch(CPU *cpu); //Noor to to use the PC to acces the instruction memory and fetch the instruction into the current instruction register
-void decode(CPU *cpu);//Noor to decode the instruction in the current instruction register and store the result in the IR
+void initialize_cpu(CPU *cpu);
+void load_program(CPU *cpu, const char *filename);
+void print_cpu_state(CPU *cpu);
+void run_pipeline(CPU *cpu);
+void fetch(CPU *cpu);
+void decode(CPU *cpu);
 void execute(CPU *cpu);
 DecodedInstruction decode_instruction(uint16_t instruction);
 void update_flags(CPU *cpu, uint8_t result);
@@ -93,26 +92,28 @@ int main() {
     return 0;
 }
 
-// Empty function implementations for milestone one
 void initialize_cpu(CPU *cpu) {
-    for(int i = 0 ; i < INSTRUCTION_MEMORY_SIZE ; i++){
-        cpu->instruction_memory[i] = 0;
+    for (int i = 0; i < INSTRUCTION_MEMORY_SIZE; i++) {
+        cpu->instruction_memory[i].current_Instruction = 0;
+        cpu->instruction_memory[i].is_stall = 0;
     }
     
-    for(int i = 0 ; i < DATA_MEMORY_SIZE ; i++){
+    for (int i = 0; i < DATA_MEMORY_SIZE; i++) {
         cpu->data_memory[i] = 0;
     }
     
-    for(int i = 0 ; i < REGISTER_COUNT ; i++){
+    for (int i = 0; i < REGISTER_COUNT; i++) {
         cpu->registers[i] = 0;
     }
-    cpu->pc= 0; 
-    cpu->IFID.instruction=0;
-    cpu->IDEX.immediate=0;
-    cpu->IDEX.opcode=0;
-    cpu->IDEX.rd=0;
-    cpu->IDEX.rs1=0;
-
+    cpu->pc = 0; 
+    cpu->IFID.instruction = 0;
+    cpu->IDEX.immediate = 0;
+    cpu->IDEX.opcode = 0;
+    cpu->IDEX.rd = 0;
+    cpu->IDEX.rs1 = 0;
+    cpu->IDEX.isempty = 1;
+    cpu->instruction_count = 0;
+    cpu->stall_flag = 0;
 }
 
 void load_program(CPU *cpu, const char *filename) {
@@ -131,7 +132,6 @@ void load_program(CPU *cpu, const char *filename) {
             break;
         }
 
-        char opcode[10];
         uint8_t rd, rs1, immediate;
         uint16_t binary_instruction = 0;
 
@@ -164,117 +164,153 @@ void load_program(CPU *cpu, const char *filename) {
         }
 
         // Store the binary instruction in the instruction memory
-        cpu->instruction_memory[instruction_index++] = binary_instruction;
+        cpu->instruction_memory[instruction_index].current_Instruction = binary_instruction;
+        cpu->instruction_memory[instruction_index].is_stall = 0;
+        cpu->instruction_count++;
+        instruction_index++;
     }
 
     fclose(file);
     printf("Program loaded successfully with %d instructions.\n", instruction_index);
 }
 
-
 void print_cpu_state(CPU *cpu) {
-    // TODO: Implement CPU state printing
+    printf("PC: %d\n", cpu->pc);
+    printf("Registers:\n");
+    for (int i = 0; i < REGISTER_COUNT; i++) {
+        printf("R%d: %d\n", i, cpu->registers[i]);
+    }
+    printf("Status Register: 0x%X\n", cpu->sreg);
 }
 
 void run_pipeline(CPU *cpu) {
+    int total_Cycles = 3 + (cpu->instruction_count - 1);
+    int Current_cycle = 1;
+    while (Current_cycle <= total_Cycles) {
+        execute(cpu);
+        decode(cpu);
+        fetch(cpu);
 
-}
-
-void fetch(CPU *cpu) {
-    // TODO: Implement fetch stage
-
-}
-
-void decode(CPU *cpu) {
-    // TODO: Implement decode stage
-}
-
-void execute(CPU *cpu) {
- // TODO: 
-}
-
-DecodedInstruction decode_instruction(uint16_t instruction) {
-    // TODO: Implement instruction decoding
-    DecodedInstruction decoded;
-    return decoded;
-}
-
-void update_flags(CPU *cpu, uint8_t result) {
-    // TODO: Implement flags update
-}
-
-void execute_add(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement ADD instruction
-}
-
-void execute_sub(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement SUB instruction
-}
-
-void execute_mul(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement MUL instruction
-}
-
-void execute_movi(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement MOVI instruction
-}
-
-void execute_beqz(CPU *cpu, DecodedInstruction instr) {
-    if (cpu->registers[instr.rd] == 0) {
-        cpu->pc = instr.immediate; // Update PC to branch target
-        // Flush the next two instructions
-        cpu->IFID.instruction = 0;
-        cpu->IDEX.opcode = 0;
-        cpu->decode.active = 0;
-        cpu->fetch.active = 0;
-       /// printf("Instruction %d: BEQZ R%d == 0, Branching to PC = 0x%04X (Flushing Pipeline)\n", cpu->instruction_count, instr.rd, cpu->pc);
-    } else {
-       // printf("Instruction %d: BEQZ R%d != 0, Continuing execution\n", cpu->instruction_count, instr.rd);
+        for(int i = 0; i< INSTRUCTION_MEMORY_SIZE; i++){
+            cpu->instruction_memory[i].is_stall = 0; 
+        }
+        Current_cycle++;
     }
 }
 
-void execute_andi(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement ANDI instruction
+void fetch(CPU *cpu) {
+    if (cpu->stall_flag) return; // Skip fetch if stalled
 
-    cpu->registers[instr.rd] = cpu->registers[instr.rd] & instr.immediate;
-    printf("ANDI: R%d = R%d & 0x%02X = 0x%02X\n", instr.rd, instr.rd, instr.immediate, cpu->registers[instr.rd]);
-    
+    if(cpu->IFID.instruction == 0 && cpu->instruction_memory[cpu->pc].is_stall == 0) {
+        cpu->IFID.instruction = cpu->instruction_memory[cpu->pc].current_Instruction;
+        cpu->instruction_memory[cpu->pc].is_stall = 1;
+        printf("Instruction %d: Fetching 0x%04X\n", cpu->instruction_count, cpu->IFID.instruction);
+        cpu->pc++;
+    }
 }
 
-void execute_eor(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement EOR instruction
-    cpu->registers[instr.rd] = cpu->registers[instr.rd] ^ cpu->registers[instr.rs1];
-    printf("EOR: R%d = R%d ^ 0x%02X = 0x%02X\n", instr.rd, instr.rd, instr.immediate, cpu->registers[instr.rd]);
-    
+void decode(CPU *cpu) {
+    if(cpu->IFID.instruction != 0 && cpu->IDEX.isempty == 1 && cpu->stall_flag == 0) {
+        uint16_t instruction = cpu->IFID.instruction;
+        cpu->IFID.instruction = 0;
+
+        cpu->IDEX.opcode = (instruction >> 12) & 0xF;
+        
+        switch(cpu->IDEX.opcode) {
+            case 0x00: // ADD
+            case 0x01: // SUB
+            case 0x02: // MUL
+            case 0x06: // EOR
+                cpu->IDEX.rd = (instruction >> 8) & 0xF;
+                cpu->IDEX.rs1 = (instruction >> 4) & 0xF;
+                cpu->IDEX.immediate = 0; // Not used for R-type instructions
+                break;
+
+            case 0x03: // MOVI
+            case 0x04: // BEQZ
+            case 0x05: // ANDI
+            case 0x08: // SAL
+            case 0x09: // SAR
+            case 0x0A: // LDR
+                cpu->IDEX.rd = (instruction >> 8) & 0xF;
+                cpu->IDEX.rs1 = 0; // Not used for I-type instructions
+                cpu->IDEX.immediate = instruction & 0xFF;
+                break;
+
+            case 0x07: // BR
+                cpu->IDEX.rd = (instruction >> 8) & 0xF;
+                cpu->IDEX.rs1 = 0;
+                cpu->IDEX.immediate = 0; // Not used for BR instruction
+                cpu->stall_flag = 1; // Stall the pipeline for control hazard
+                break;
+
+            default:
+                printf("Error: Unknown opcode 0x%X\n", cpu->IDEX.opcode);
+                break;
+        }
+
+        cpu->IDEX.isempty = 0;
+
+        printf("Decoded Instruction: Opcode=0x%X, RD=%d, RS1=%d, Immediate=0x%X\n",
+               cpu->IDEX.opcode, cpu->IDEX.rd, cpu->IDEX.rs1, cpu->IDEX.immediate);
+    }
 }
 
-void execute_br(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement BR instruction
-        cpu->pc = cpu->registers[instr.rs1];
-        printf("BR: PC = R%d -> 0x%04X\n", instr.rs1, cpu->pc);
-}
+void execute(CPU *cpu) {
+    if(cpu->IDEX.isempty == 0 && cpu->stall_flag == 0) {
+        uint8_t opcode = cpu->IDEX.opcode;
+        uint8_t rd = cpu->IDEX.rd;
+        uint8_t rs = cpu->IDEX.rs1;
+        uint8_t imm = cpu->IDEX.immediate;
 
-void execute_sal(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement SAL instruction
-        cpu->registers[instr.rd] <<= instr.immediate;
-        printf("SAL: R%d = R%d << %d -> 0x%02X\n", instr.rd, instr.rd, instr.immediate, cpu->registers[instr.rd]);
+        switch (opcode) {
+            case 0x00: // ADD
+                cpu->registers[rd] += cpu->registers[rs];
+                break;
+            case 0x01: // SUB
+                cpu->registers[rd] -= cpu->registers[rs];
+                break;
+            case 0x02: // MUL
+                cpu->registers[rd] *= cpu->registers[rs];
+                break;
+            case 0x03: // MOVI
+                cpu->registers[rd] = imm;
+                break;
+            case 0x04: // BEQZ
+                if (cpu->registers[rd] == 0) {
+                    cpu->pc += imm;
+                    cpu->stall_flag = 0; // Clear stall after branch
+                }
+                break;
+            case 0x05: // ANDI
+                cpu->registers[rd] &= imm;
+                break;
+            case 0x06: // EOR
+                cpu->registers[rd] ^= cpu->registers[rs];
+                break;
+            case 0x07: // BR
+                cpu->pc = cpu->registers[rd] | cpu->registers[rs];
+                cpu->stall_flag = 0; // Clear stall after branch
+                break;
+            case 0x08: // SAL
+                cpu->registers[rd] <<= imm;
+                break;
+            case 0x09: // SAR
+                cpu->registers[rd] >>= imm;
+                break;
+            case 0x0A: // LDR
+                cpu->registers[rd] = cpu->data_memory[imm];
+                break;
+            case 0x0B: // STR
+                cpu->data_memory[imm] = cpu->registers[rd];
+                break;
+            default:
+                printf("Error: Unknown opcode 0x%X\n", opcode);
+                break;
+        }
 
-}
-
-void execute_sar(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement SAR instruction
-        cpu->registers[instr.rd] >>= instr.immediate;
-        printf("SAR: R%d = R%d >> %d -> 0x%02X\n", instr.rd, instr.rd, instr.immediate, cpu->registers[instr.rd]);
-}
-
-void execute_ldr(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement LDR instruction
-    cpu->registers[instr.rd] = cpu->data_memory[instr.immediate];
-    printf("LDR: R%d = MEM[R%d + 0x%02X] = 0x%02X\n", instr.rd, instr.rs1, instr.immediate, cpu->registers[instr.rd]);
-}
-
-void execute_str(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement STR instruction
-    cpu->data_memory[instr.immediate] = cpu->registers[instr.rd];
-    printf("STR: MEM[R%d + 0x%02X] = R%d = 0x%02X\n", instr.rs1, instr.immediate, instr.rd, cpu->registers[instr.rd]);
+        cpu->IDEX.isempty = 1;
+        printf("Executed Instruction: Opcode=0x%X, RD=%d, RS1=%d, Immediate=0x%X\n",
+               cpu->IDEX.opcode, cpu->IDEX.rd, cpu->IDEX.rs1, cpu->IDEX.immediate);
+    }
 }
