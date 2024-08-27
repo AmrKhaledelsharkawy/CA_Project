@@ -22,7 +22,7 @@ typedef struct {
 
 typedef struct {
     uint16_t current_Instruction;
-    int is_stall;
+    int is_stall; // 1 so the instrucation has already wento into an stage 
 } Instruction;
 
 typedef struct {
@@ -171,11 +171,11 @@ void print_cpu_state(CPU *cpu) {
     for (int i = 0; i < REGISTER_COUNT; i++) {
         printf("R%d: %d\n", i, cpu->registers[i]);
     }
-    printf("Status Register: 0x%X\n", u->sreg);
+    printf("Status Register: 0x%X\n", cpu->sreg);
 }
 
 void run_pipeline(CPU *cpu) {
-    int total_Cycles = 3 + (cpu->instruction_count - 1);
+    int total_Cycles = 3 + (cpu->instruction_count - 1); // 7int total = 9
     int Current_cycle = 1;
     while (Current_cycle <= total_Cycles) {
         execute(cpu);
