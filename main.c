@@ -20,6 +20,20 @@ typedef struct {
     int active;
 } PipelineStage;
 
+typedef struct 
+{
+    short int instruction
+}IFID;
+
+typedef struct 
+{
+    int opcode;
+    uint8_t rd;
+    uint8_t rs1;
+    uint8_t immediate;
+}IDEX;
+
+
 typedef struct { // instruction will be short int (16 bits) -- PC will be int (32 bits)
     uint16_t instruction_memory[INSTRUCTION_MEMORY_SIZE];
     uint8_t data_memory[DATA_MEMORY_SIZE];
@@ -27,9 +41,13 @@ typedef struct { // instruction will be short int (16 bits) -- PC will be int (3
     uint16_t pc;
     PipelineStage fetch, decode, execute;
     uint8_t sreg; // Status Register
-    fetchedInstruction CurrentInstruction;
-    DecodedInstruction IR;
+    //fetchedInstruction CurrentInstruction;
+   // DecodedInstruction IR;
+    IFID IFID;
+    IDEX IDEX;
 } CPU;
+
+
 
 typedef struct {
     short int instruction;
@@ -69,14 +87,31 @@ void execute_str(CPU *cpu, DecodedInstruction instr);
 int main() {
     CPU cpu;
     initialize_cpu(&cpu);
-    load_program(&cpu, "program2.txt"); // Replace with your program file
+    load_program(&cpu, "program.txt"); // Replace with your program file
     run_pipeline(&cpu);
     return 0;
 }
 
 // Empty function implementations for milestone one
 void initialize_cpu(CPU *cpu) {
+    for(int i = 0 ; i < INSTRUCTION_MEMORY_SIZE ; i++){
+        cpu->instruction_memory[i] = 0;
+    }
     
+    for(int i = 0 ; i < DATA_MEMORY_SIZE ; i++){
+        cpu->data_memory[i] = 0;
+    }
+    
+    for(int i = 0 ; i < REGISTER_COUNT ; i++){
+        cpu->registers[i] = 0;
+    }
+    cpu->pc= 0; 
+    cpu->IFID.instruction=0;
+    cpu->IDEX.immediate=0;
+    cpu->IDEX.opcode=0;
+    cpu->IDEX.rd=0;
+    cpu->IDEX.rs1=0;
+
 }
 
 void load_program(CPU *cpu, const char *filename) {
@@ -93,6 +128,7 @@ void run_pipeline(CPU *cpu) {
 
 void fetch(CPU *cpu) {
     // TODO: Implement fetch stage
+
 }
 
 void decode(CPU *cpu) {
@@ -100,46 +136,7 @@ void decode(CPU *cpu) {
 }
 
 void execute(CPU *cpu) {
-    cpu->execute.active = 1;
-    switch (cpu->IR.opcode) {
-        case 0x00:
-            execute_add(cpu, cpu->IR);
-            break;
-        case 0x01:
-            execute_sub(cpu, cpu->IR);
-            break;
-        case 0x02:
-            execute_mul(cpu, cpu->IR);
-            break;
-        case 0x03:
-            execute_movi(cpu, cpu->IR);
-            break;
-        case 0x04:
-            execute_beqz(cpu, cpu->IR);
-            break;
-        case 0x05:
-            execute_andi(cpu, cpu->IR);
-            break;
-        case 0x06:
-            execute_eor(cpu, cpu->IR);
-            break;
-        case 0x07:
-            execute_br(cpu, cpu->IR);
-            break;
-        case 0x08:
-            execute_sal(cpu, cpu->IR);
-            break;
-        case 0x09:
-            execute_sar(cpu, cpu->IR);
-            break;
-        case 0x0A:
-            execute_ldr(cpu, cpu->IR);
-            break;
-        case 0x0B:
-            execute_str(cpu, cpu->IR);
-            break;
-    }
-
+ // TODO: 
 }
 
 DecodedInstruction decode_instruction(uint16_t instruction) {
@@ -169,7 +166,17 @@ void execute_movi(CPU *cpu, DecodedInstruction instr) {
 }
 
 void execute_beqz(CPU *cpu, DecodedInstruction instr) {
-    // TODO: Implement BEQZ instruction
+    if (cpu->registers[instr.rd] == 0) {
+        cpu->pc = instr.immediate; // Update PC to branch target
+        // Flush the next two instructions
+        cpu->IFID.instruction = 0;
+        cpu->IDEX.opcode = 0;
+        cpu->decode.active = 0;
+        cpu->fetch.active = 0;
+       /// printf("Instruction %d: BEQZ R%d == 0, Branching to PC = 0x%04X (Flushing Pipeline)\n", cpu->instruction_count, instr.rd, cpu->pc);
+    } else {
+       // printf("Instruction %d: BEQZ R%d != 0, Continuing execution\n", cpu->instruction_count, instr.rd);
+    }
 }
 
 void execute_andi(CPU *cpu, DecodedInstruction instr) {
@@ -208,12 +215,12 @@ void execute_sar(CPU *cpu, DecodedInstruction instr) {
 
 void execute_ldr(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement LDR instruction
-    cpu->registers[instr.rd] = cpu->data_memory[cpu->registers[instr.rs1] + instr.immediate];
+    cpu->registers[instr.rd] = cpu->data_memory[instr.immediate];
     printf("LDR: R%d = MEM[R%d + 0x%02X] = 0x%02X\n", instr.rd, instr.rs1, instr.immediate, cpu->registers[instr.rd]);
 }
 
 void execute_str(CPU *cpu, DecodedInstruction instr) {
     // TODO: Implement STR instruction
-    cpu->data_memory[cpu->registers[instr.rs1] + instr.immediate] = cpu->registers[instr.rd];
+    cpu->data_memory[instr.immediate] = cpu->registers[instr.rd];
     printf("STR: MEM[R%d + 0x%02X] = R%d = 0x%02X\n", instr.rs1, instr.immediate, instr.rd, cpu->registers[instr.rd]);
 }
