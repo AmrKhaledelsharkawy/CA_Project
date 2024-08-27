@@ -121,29 +121,34 @@ void load_program(CPU *cpu, const char *filename) {
         uint8_t rd, rs1, immediate;
         uint16_t binary_instruction = 0;
 
+        // Remove newline character if present
+        line[strcspn(line, "\n")] = 0;
+
         // Parse each instruction based on its format
-        if (sscanf(line, "ADD R%hhu R%hhu", &rd, &rs1) == 2) {
-            binary_instruction = (0x00 << 12) | (rd << 8) | (rs1 << 4);
-        } else if (sscanf(line, "SUB R%hhu R%hhu", &rd, &rs1) == 2) {
-            binary_instruction = (0x01 << 12) | (rd << 8) | (rs1 << 4);
-        } else if (sscanf(line, "MUL R%hhu R%hhu", &rd, &rs1) == 2) {
-            binary_instruction = (0x02 << 12) | (rd << 8) | (rs1 << 4);
-        } else if (sscanf(line, "MOVI R%hhu %hhu", &rd, &immediate) == 2) {
+        if (sscanf(line, "MOVI R%hhu, %hhu", &rd, &immediate) == 2) {
             binary_instruction = (0x03 << 12) | (rd << 8) | immediate;
-        } else if (sscanf(line, "BEQZ R%hhu %hhu", &rd, &immediate) == 2) {
+        } else if (sscanf(line, "ADD R%hhu, R%hhu", &rd, &rs1) == 2) {
+            binary_instruction = (0x00 << 12) | (rd << 8) | (rs1 << 4);
+        } else if (sscanf(line, "SUB R%hhu, R%hhu", &rd, &rs1) == 2) {
+            binary_instruction = (0x01 << 12) | (rd << 8) | (rs1 << 4);
+        } else if (sscanf(line, "MUL R%hhu, R%hhu", &rd, &rs1) == 2) {
+            binary_instruction = (0x02 << 12) | (rd << 8) | (rs1 << 4);
+        } else if (sscanf(line, "BEQZ R%hhu, %hhu", &rd, &immediate) == 2) {
             binary_instruction = (0x04 << 12) | (rd << 8) | immediate;
-        } else if (sscanf(line, "ANDI R%hhu %hhu", &rd, &immediate) == 2) {
+        } else if (sscanf(line, "ANDI R%hhu, %hhu", &rd, &immediate) == 2) {
             binary_instruction = (0x05 << 12) | (rd << 8) | immediate;
-        } else if (sscanf(line, "EOR R%hhu R%hhu", &rd, &rs1) == 2) {
+        } else if (sscanf(line, "EOR R%hhu, R%hhu", &rd, &rs1) == 2) {
             binary_instruction = (0x06 << 12) | (rd << 8) | (rs1 << 4);
-        } else if (sscanf(line, "BR R%hhu", &rd) == 1) {
-            binary_instruction = (0x07 << 12) | (rd << 8);
-        } else if (sscanf(line, "SAL R%hhu %hhu", &rd, &immediate) == 2) {
+        } else if (sscanf(line, "BR R%hhu, R%hhu", &rd, &rs1) == 2) {
+            binary_instruction = (0x07 << 12) | (rd << 8) | (rs1 << 4);
+        } else if (sscanf(line, "SAL R%hhu, %hhu", &rd, &immediate) == 2) {
             binary_instruction = (0x08 << 12) | (rd << 8) | immediate;
-        } else if (sscanf(line, "SAR R%hhu %hhu", &rd, &immediate) == 2) {
+        } else if (sscanf(line, "SAR R%hhu, %hhu", &rd, &immediate) == 2) {
             binary_instruction = (0x09 << 12) | (rd << 8) | immediate;
-        } else if (sscanf(line, "LDR R%hhu %hhu", &rd, &immediate) == 2) {
+        } else if (sscanf(line, "LDR R%hhu, %hhu", &rd, &immediate) == 2) {
             binary_instruction = (0x0A << 12) | (rd << 8) | immediate;
+        } else if (sscanf(line, "STR R%hhu, %hhu", &rd, &immediate) == 2) {
+            binary_instruction = (0x0B << 12) | (rd << 8) | immediate;
         } else {
             printf("Error: Unrecognized instruction \"%s\"\n", line);
             continue;
@@ -166,7 +171,7 @@ void print_cpu_state(CPU *cpu) {
     for (int i = 0; i < REGISTER_COUNT; i++) {
         printf("R%d: %d\n", i, cpu->registers[i]);
     }
-    printf("Status Register: 0x%X\n", cpu->sreg);
+    printf("Status Register: 0x%X\n", u->sreg);
 }
 
 void run_pipeline(CPU *cpu) {
