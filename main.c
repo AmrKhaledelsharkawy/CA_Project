@@ -69,20 +69,6 @@ void run_pipeline(CPU *cpu);
 void fetch(CPU *cpu);
 void decode(CPU *cpu);
 void execute(CPU *cpu);
-DecodedInstruction decode_instruction(uint16_t instruction);
-void update_flags(CPU *cpu, uint8_t result);
-void execute_add(CPU *cpu, DecodedInstruction instr);
-void execute_sub(CPU *cpu, DecodedInstruction instr);
-void execute_mul(CPU *cpu, DecodedInstruction instr);
-void execute_movi(CPU *cpu, DecodedInstruction instr);
-void execute_beqz(CPU *cpu, DecodedInstruction instr);
-void execute_andi(CPU *cpu, DecodedInstruction instr);
-void execute_eor(CPU *cpu, DecodedInstruction instr);
-void execute_br(CPU *cpu, DecodedInstruction instr);
-void execute_sal(CPU *cpu, DecodedInstruction instr);
-void execute_sar(CPU *cpu, DecodedInstruction instr);
-void execute_ldr(CPU *cpu, DecodedInstruction instr);
-void execute_str(CPU *cpu, DecodedInstruction instr);
 
 int main() {
     CPU cpu;
