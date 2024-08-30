@@ -110,8 +110,8 @@ void initialize_cpu(CPU *cpu) {
 }
 
 void End_program(CPU *cpu) {
-    FILE *output_file = fopen("output/cycle_data.txt", "a");
-    FILE *error_file = fopen("output/error_log.txt", "a");
+    FILE *output_file = fopen("CA_Project/output/cycle_data.txt", "a");
+    FILE *error_file = fopen("CA_Project/output/error_log.txt", "a");
 
     if (!output_file || !error_file) {
         printf("Error: Unable to open output or error file.\n");
@@ -274,8 +274,8 @@ void run_pipeline(CPU *cpu) {
     int total_cycles = 3 + (total_instructions - 1);
     int current_cycle = 1;
 
-    FILE *output_file = fopen("output/cycle_data.txt", "w"); // Open the output file for writing
-    FILE *error_file = fopen("output/error_log.txt", "w");   // Open the error log file for writing
+    FILE *output_file = fopen("CA_Project/output/cycle_data.txt", "w"); // Open the output file for writing
+    FILE *error_file = fopen("CA_Project/output/error_log.txt", "w");   // Open the error log file for writing
 
     if (!output_file || !error_file) {
         printf("Error: Unable to open output or error file.\n");

@@ -1,5 +1,7 @@
 import tkinter as tk
-from tkinter import filedialog, scrolledtext, ttk
+from tkinter import scrolledtext, ttk
+import subprocess
+import os
 
 class CPUSimulatorIDE(tk.Tk):
     def __init__(self):
@@ -17,17 +19,7 @@ class CPUSimulatorIDE(tk.Tk):
     def setup_editor(self):
         self.editor = scrolledtext.ScrolledText(self, wrap=tk.WORD, font=("Courier New", 12))
         self.editor.pack(fill=tk.BOTH, expand=1, side=tk.TOP)
-        self.editor.bind("<Control-s>", self.save_file)
-
-        # Menu for file operations
-        menu_bar = tk.Menu(self)
-        self.config(menu=menu_bar)
-
-        file_menu = tk.Menu(menu_bar, tearoff=0)
-        menu_bar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Open", command=self.open_file)
-        file_menu.add_command(label="Save", command=self.save_file)
-        file_menu.add_command(label="Run", command=self.run_code)
+        self.load_program_txt()
 
     def setup_console(self):
         self.console_output = scrolledtext.ScrolledText(self, wrap=tk.WORD, font=("Courier New", 10), height=10)
@@ -58,6 +50,10 @@ class CPUSimulatorIDE(tk.Tk):
         self.next_button = tk.Button(self.pipeline_frame, text="Next Cycle", command=self.next_cycle)
         self.next_button.pack(side=tk.LEFT, padx=5, pady=5)
 
+        # Run button
+        self.run_button = tk.Button(self.pipeline_frame, text="Run", command=self.run_code)
+        self.run_button.pack(side=tk.LEFT, padx=5, pady=5)
+
     def setup_error_view(self):
         self.error_frame = tk.Frame(self)
         self.error_frame.pack(fill=tk.BOTH, expand=1, side=tk.BOTTOM)
@@ -65,27 +61,24 @@ class CPUSimulatorIDE(tk.Tk):
         self.error_output = scrolledtext.ScrolledText(self.error_frame, wrap=tk.WORD, font=("Courier New", 10), height=10)
         self.error_output.pack(fill=tk.BOTH, expand=1, side=tk.BOTTOM)
 
-    def open_file(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            with open(file_path, 'r') as file:
+    def load_program_txt(self):
+        program_txt_path = "../cpu_backend/program.txt"
+        if os.path.exists(program_txt_path):
+            with open(program_txt_path, 'r') as file:
                 self.editor.delete(1.0, tk.END)
                 self.editor.insert(tk.END, file.read())
 
-    def save_file(self, event=None):
-        file_path = filedialog.asksaveasfilename(defaultextension=".txt")
-        if file_path:
-            with open(file_path, 'w') as file:
-                file.write(self.editor.get(1.0, tk.END))
-
     def run_code(self):
-        # Save the code to a file and run the C backend
-        self.save_file()
+        # Compile and run the C code
+        c_file_path = "../cpu_backend/main.c"
+        output_path = "../cpu_backend/cpu_simulation"
 
-        # Assuming you have a script or makefile to compile and run the C program
-        import subprocess
-        subprocess.run("make -C ../cpu_backend", shell=True)
-        subprocess.run("../cpu_backend/cpu_simulation", shell=True)
+        compile_command = f"gcc {c_file_path} -o {output_path}"
+        subprocess.run(compile_command, shell=True)
+
+        # Run the compiled C program
+        run_command = f"{output_path}"
+        subprocess.run(run_command, shell=True)
 
         # Load the output data
         self.load_pipeline_data()
