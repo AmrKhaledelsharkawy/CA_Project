@@ -1,0 +1,22 @@
+Fetching Instruction 1:  0x3101
+Decoded Instruction 1: Opcode=0x3, RD=1, RS1=0, Immediate=0x1
+Fetching Instruction 2:  0x0010
+Executed Instruction 1: Opcode=0x3, RD=1, RS1=0, Immediate=0x1
+Decoded Instruction 2: Opcode=0x0, RD=0, RS1=1, Immediate=0x0
+Fetching Instruction 3:  0x0010
+Executed Instruction 2: Opcode=0x0, RD=0, RS1=1, Immediate=0x0
+Decoded Instruction 3: Opcode=0x0, RD=0, RS1=1, Immediate=0x0
+Fetching Instruction 4:  0x4501
+Executed Instruction 3: Opcode=0x0, RD=0, RS1=1, Immediate=0x0
+Decoded Instruction 4: Opcode=0x4, RD=5, RS1=0, Immediate=0x1
+Fetching Instruction 5:  0x0010
+@PC=5  BEQZ to 1: Branch Taken because R5 = 0
+Flushing pipeline due to branch instruction with immediate value 1
+Flushing IFID and IDEX registers
+Flushing IFID: Instruction=0x0010, Inst_Num=5
+Flushing IDEX: Opcode=0x4, RD=5, RS1=0, Immediate=0x1, Inst_Num=4
+Branching to instruction 6 at PC=5
+Executed Instruction 0: Opcode=0x0, RD=0, RS1=0, Immediate=0x0
+Fetching Instruction 6:  0x0010
+Decoded Instruction 6: Opcode=0x0, RD=0, RS1=1, Immediate=0x0
+Executed Instruction 6: Opcode=0x0, RD=0, RS1=1, Immediate=0x0

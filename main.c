@@ -8,6 +8,10 @@
 #define DATA_MEMORY_SIZE 2048        // 8-bit bytes
 #define REGISTER_COUNT 66
 
+// Define file paths using #define for output and error log files
+#define OUTPUT_FILE_PATH "cycledata.txt"
+#define ERROR_LOG_FILE_PATH "errorlog.txt"
+
 // Define flags in the status register
 #define CARRY_FLAG 0x01
 #define OVERFLOW_FLAG 0x02
@@ -110,8 +114,8 @@ void initialize_cpu(CPU *cpu) {
 }
 
 void End_program(CPU *cpu) {
-    FILE *output_file = fopen("CA_Project/output/cycle_data.txt", "a");
-    FILE *error_file = fopen("CA_Project/output/error_log.txt", "a");
+    FILE *output_file = fopen(OUTPUT_FILE_PATH, "a");
+    FILE *error_file = fopen(ERROR_LOG_FILE_PATH, "a");
 
     if (!output_file || !error_file) {
         printf("Error: Unable to open output or error file.\n");
@@ -166,16 +170,29 @@ void End_program(CPU *cpu) {
 
 void load_program(CPU *cpu, const char *filename) {
     FILE *file = fopen(filename, "r");
-    FILE *error_file = fopen("output/error_log.txt", "a");
+    FILE *error_file = fopen(ERROR_LOG_FILE_PATH, "a");
 
+ // Check if files are opened successfully
     if (!file) {
-        fprintf(error_file, "Error: Unable to open file %s\n", filename);
-        fclose(error_file);
+        if (error_file) {
+            fprintf(error_file, "Error: Unable to open file %s\n", filename);
+            fclose(error_file);
+        }
+        printf("Error: Unable to open file %s\n", filename);
+        return;
+    }
+
+    if (!error_file) {
+        printf("Error: Unable to open error log file %s\n", ERROR_LOG_FILE_PATH);
+        fclose(file);
         return;
     }
 
     char line[256];
     int instruction_index = 0;
+
+    // Initialize all instruction memory to prevent uninitialized access
+    memset(cpu->instruction_memory, 0, sizeof(cpu->instruction_memory));
 
     while (fgets(line, sizeof(line), file)) {
         if (instruction_index >= INSTRUCTION_MEMORY_SIZE) {
@@ -183,8 +200,10 @@ void load_program(CPU *cpu, const char *filename) {
             break;
         }
 
-        uint8_t rd, rs1;
-        int16_t immediate;  // Use int16_t to capture potential negative values in load
+        
+
+        uint8_t rd = 0, rs1 = 0;
+        int16_t immediate = 0;  // Use int16_t to capture potential negative values in load
         uint16_t binary_instruction = 0;
 
         // Remove newline character if present
@@ -240,6 +259,12 @@ void load_program(CPU *cpu, const char *filename) {
             continue;
         }
 
+        // Ensure the instruction_index is within bounds
+        if (instruction_index < 0 || instruction_index >= INSTRUCTION_MEMORY_SIZE) {
+            fprintf(error_file, "Error: Instruction index out of bounds: %d\n", instruction_index);
+            break;
+        }
+
         // Store the binary instruction in the instruction memory
         cpu->instruction_memory[instruction_index].current_Instruction = binary_instruction;
         cpu->instruction_memory[instruction_index].inst_number = instruction_index + 1;
@@ -274,37 +299,70 @@ void run_pipeline(CPU *cpu) {
     int total_cycles = 3 + (total_instructions - 1);
     int current_cycle = 1;
 
-    FILE *output_file = fopen("CA_Project/output/cycle_data.txt", "w"); // Open the output file for writing
-    FILE *error_file = fopen("CA_Project/output/error_log.txt", "w");   // Open the error log file for writing
+    FILE *output_file = fopen(OUTPUT_FILE_PATH, "w"); // Open the output file for writing
+    FILE *error_file = fopen(ERROR_LOG_FILE_PATH, "w");   // Open the error log file for writing
 
     if (!output_file || !error_file) {
         printf("Error: Unable to open output or error file.\n");
         return;
     }
 
+    // Start of cycle data identifier
     while (current_cycle <= total_cycles) {
+        fprintf(output_file, "### START OF CYCLE%d DATA ###\n", current_cycle);
+
         fprintf(output_file, "Cycle %d:\n", current_cycle);
         fprintf(output_file, "Current Cycle is %d and Current PC is %d\n", current_cycle, cpu->registers[64]);
 
-        // Execute, Decode, and Fetch stages in the correct pipeline order
+        // Execute stage
         if (current_cycle >= 3 && current_cycle <= total_instructions + 2) {
+            fprintf(output_file, "Executing Instruction %d: Opcode=0x%X, RD=%d, RS1=%d, Immediate=0x%X\n",
+                    cpu->IDEX.inst_number, cpu->IDEX.opcode, cpu->IDEX.rd, cpu->IDEX.rs1, cpu->IDEX.immediate);
             execute(cpu, error_file);
         }
+
+        // Decode stage
         if (current_cycle >= 2 && current_cycle <= total_instructions + 1) {
+            fprintf(output_file, "Decoding Instruction %d: Opcode=0x%X, RD=%d, RS1=%d, Immediate=0x%X\n",
+                    cpu->IFID.inst_number, (cpu->IFID.instruction >> 12) & 0xF, (cpu->IFID.instruction >> 8) & 0xF,
+                    (cpu->IFID.instruction >> 4) & 0xF, cpu->IFID.instruction & 0x3F);
             decode(cpu, error_file);
             fprintf(output_file, "IDEX Register inst %d: Opcode=0x%X, RD=%d, RS1=%d, Immediate=0x%X, isempty=%d\n",
                     cpu->IDEX.inst_number, cpu->IDEX.opcode, cpu->IDEX.rd, cpu->IDEX.rs1, cpu->IDEX.immediate, cpu->IDEX.isempty);
         }
+
+        // Fetch stage
         if (current_cycle >= 1 && current_cycle <= total_instructions) {
+        
             fetch(cpu, error_file);
-            fprintf(output_file, "IFID Register inst %d: Instruction=0x%04X at the PC %d \n", cpu->IFID.inst_number, cpu->IFID.instruction, cpu->registers[64]);
+            fprintf(output_file, "Fetching Instruction %d: Instruction=0x%04X at the PC %d \n",
+                    cpu->registers[64], cpu->IFID.instruction, cpu->registers[64]);
         }
 
-        // Write the current cycle's state to the file
-        write_cycle_data(cpu, current_cycle, output_file);
-
-        fprintf(output_file, "\n");
         cpu->stall_flag = 0;
+
+        // Print registers for the current cycle
+        fprintf(output_file, "### Registers CYCLE%d DATA ###\n", current_cycle);
+        fprintf(output_file, "Registers:\n");
+        for (int i = 0; i < 64; i++) {
+            if (cpu->registers[i] != 0) {
+                fprintf(output_file, "R%d: %d\n", i, cpu->registers[i]);
+            }
+        }
+        fprintf(output_file, "PC: %d\n", cpu->registers[64]);
+        fprintf(output_file, "SREG: 0x%X\n", cpu->registers[65]);
+
+        // Print data memory for the current cycle
+        fprintf(output_file, "### Data Memory CYCLE%d DATA ###\n", current_cycle);
+        fprintf(output_file, "Data Memory:\n");
+        for (int i = 0; i < DATA_MEMORY_SIZE; i++) {
+            if (cpu->data_memory[i] != 0) {
+                fprintf(output_file, "Memory[%d]: %d\n", i, cpu->data_memory[i]);
+            }
+        }
+
+        // End of cycle data identifier
+        fprintf(output_file, "### END OF CYCLE%d DATA ###\n", current_cycle);
         current_cycle++;
     }
 
@@ -610,8 +668,7 @@ void execute(CPU *cpu, FILE *error_file) {
 }
 
 void write_cycle_data(CPU *cpu, int cycle, FILE *output_file) {
-    fprintf(output_file, "Cycle %d:\n", cycle);
-    fprintf(output_file, "Fetch: Instruction=0x%04X, PC=%d\n", cpu->IFID.instruction, cpu->registers[64] - 1);
+     fprintf(output_file, "Fetch: Instruction=0x%04X, PC=%d\n", cpu->IFID.instruction, cpu->registers[64] - 1);
     fprintf(output_file, "IFID: Instruction=0x%04X, PC=%d\n", cpu->IFID.instruction, cpu->registers[64]);
     fprintf(output_file, "IDEX: Opcode=0x%X, RD=%d, RS1=%d, Immediate=0x%X\n",
             cpu->IDEX.opcode, cpu->IDEX.rd, cpu->IDEX.rs1, cpu->IDEX.immediate);

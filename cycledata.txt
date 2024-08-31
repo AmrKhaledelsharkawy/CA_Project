@@ -1,0 +1,138 @@
+### START OF CYCLE1 DATA ###
+Cycle 1:
+Current Cycle is 1 and Current PC is 0
+Fetching Instruction 1: Instruction=0x3101 at the PC 1 
+### Registers CYCLE1 DATA ###
+Registers:
+PC: 1
+SREG: 0x0
+### Data Memory CYCLE1 DATA ###
+Data Memory:
+### END OF CYCLE1 DATA ###
+### START OF CYCLE2 DATA ###
+Cycle 2:
+Current Cycle is 2 and Current PC is 1
+Decoding Instruction 1: Opcode=0x3, RD=1, RS1=0, Immediate=0x1
+IDEX Register inst 1: Opcode=0x3, RD=1, RS1=0, Immediate=0x1, isempty=0
+Fetching Instruction 2: Instruction=0x0010 at the PC 2 
+### Registers CYCLE2 DATA ###
+Registers:
+PC: 2
+SREG: 0x0
+### Data Memory CYCLE2 DATA ###
+Data Memory:
+### END OF CYCLE2 DATA ###
+### START OF CYCLE3 DATA ###
+Cycle 3:
+Current Cycle is 3 and Current PC is 2
+Executing Instruction 1: Opcode=0x3, RD=1, RS1=0, Immediate=0x1
+Decoding Instruction 2: Opcode=0x0, RD=0, RS1=1, Immediate=0x10
+IDEX Register inst 2: Opcode=0x0, RD=0, RS1=1, Immediate=0x0, isempty=0
+Fetching Instruction 3: Instruction=0x0010 at the PC 3 
+### Registers CYCLE3 DATA ###
+Registers:
+R1: 1
+PC: 3
+SREG: 0x0
+### Data Memory CYCLE3 DATA ###
+Data Memory:
+### END OF CYCLE3 DATA ###
+### START OF CYCLE4 DATA ###
+Cycle 4:
+Current Cycle is 4 and Current PC is 3
+Executing Instruction 2: Opcode=0x0, RD=0, RS1=1, Immediate=0x0
+Decoding Instruction 3: Opcode=0x0, RD=0, RS1=1, Immediate=0x10
+IDEX Register inst 3: Opcode=0x0, RD=0, RS1=1, Immediate=0x0, isempty=0
+Fetching Instruction 4: Instruction=0x4501 at the PC 4 
+### Registers CYCLE4 DATA ###
+Registers:
+R0: 1
+R1: 1
+PC: 4
+SREG: 0x0
+### Data Memory CYCLE4 DATA ###
+Data Memory:
+### END OF CYCLE4 DATA ###
+### START OF CYCLE5 DATA ###
+Cycle 5:
+Current Cycle is 5 and Current PC is 4
+Executing Instruction 3: Opcode=0x0, RD=0, RS1=1, Immediate=0x0
+Decoding Instruction 4: Opcode=0x4, RD=5, RS1=0, Immediate=0x1
+IDEX Register inst 4: Opcode=0x4, RD=5, RS1=0, Immediate=0x1, isempty=0
+Fetching Instruction 5: Instruction=0x0010 at the PC 5 
+### Registers CYCLE5 DATA ###
+Registers:
+R0: 2
+R1: 1
+PC: 5
+SREG: 0x0
+### Data Memory CYCLE5 DATA ###
+Data Memory:
+### END OF CYCLE5 DATA ###
+### START OF CYCLE6 DATA ###
+Cycle 6:
+Current Cycle is 6 and Current PC is 5
+Executing Instruction 4: Opcode=0x4, RD=5, RS1=0, Immediate=0x1
+Decoding Instruction 0: Opcode=0x0, RD=0, RS1=0, Immediate=0x0
+IDEX Register inst 0: Opcode=0x0, RD=0, RS1=0, Immediate=0x0, isempty=1
+Fetching Instruction 6: Instruction=0x0010 at the PC 6 
+### Registers CYCLE6 DATA ###
+Registers:
+R0: 2
+R1: 1
+PC: 6
+SREG: 0x0
+### Data Memory CYCLE6 DATA ###
+Data Memory:
+### END OF CYCLE6 DATA ###
+### START OF CYCLE7 DATA ###
+Cycle 7:
+Current Cycle is 7 and Current PC is 6
+Executing Instruction 0: Opcode=0x0, RD=0, RS1=0, Immediate=0x0
+Decoding Instruction 6: Opcode=0x0, RD=0, RS1=1, Immediate=0x10
+IDEX Register inst 6: Opcode=0x0, RD=0, RS1=1, Immediate=0x0, isempty=0
+### Registers CYCLE7 DATA ###
+Registers:
+R0: 2
+R1: 1
+PC: 6
+SREG: 0x0
+### Data Memory CYCLE7 DATA ###
+Data Memory:
+### END OF CYCLE7 DATA ###
+### START OF CYCLE8 DATA ###
+Cycle 8:
+Current Cycle is 8 and Current PC is 6
+Executing Instruction 6: Opcode=0x0, RD=0, RS1=1, Immediate=0x0
+### Registers CYCLE8 DATA ###
+Registers:
+R0: 3
+R1: 1
+PC: 6
+SREG: 0x0
+### Data Memory CYCLE8 DATA ###
+Data Memory:
+### END OF CYCLE8 DATA ###
+
+Final CPU State:
+PC: 6
+Status Register (SREG):
+7 | 6 | 5 | C | V | N | S | Z
+-------------------------------
+ X | X | X | 0 | 0 | 0 | 0 | 0 |
+
+Registers:
+R1: 1
+R5: 0
+
+Instruction Memory:
+Instruction 0: 0x3101
+Instruction 1: 0x0010
+Instruction 2: 0x0010
+Instruction 3: 0x4501
+Instruction 4: 0x0010
+Instruction 5: 0x0010
+
+Data Memory:
+
+End of Program Execution.
