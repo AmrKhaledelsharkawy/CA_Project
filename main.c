@@ -9,7 +9,7 @@
 #define REGISTER_COUNT 66
 
 // Define file paths using #define for output and error log files
-#define OUTPUT_FILE_PATH "cycledata.txt"
+#define OUTPUT_FILE_PATH "/home/amrotheone/ui/CA_Project/cycledata.txt"
 #define ERROR_LOG_FILE_PATH "errorlog.txt"
 
 // Define flags in the status register
