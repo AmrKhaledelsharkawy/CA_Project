@@ -129,7 +129,7 @@ void End_program(CPU *cpu) {
     // Print out the values of all non-zero general-purpose registers
     printf("\nRegisters:\n");
     for (int i = 0; i < 64; i++) {
-        if (reg_used[i] != 0) {
+        if (   cpu->registers[i] != 0 && i != 64 && i != 65) {
             printf("R%d: %d\n", i, cpu->registers[i]);  // Print as signed integer
         }
     }
