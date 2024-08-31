@@ -122,8 +122,8 @@ Status Register (SREG):
  X | X | X | 0 | 0 | 0 | 0 | 0 |
 
 Registers:
+R0: 3
 R1: 1
-R5: 0
 
 Instruction Memory:
 Instruction 0: 0x3101
