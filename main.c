@@ -142,7 +142,7 @@ void End_program(CPU *cpu) {
     // Print out the values of all non-zero general-purpose registers
     fprintf(output_file, "\nRegisters:\n");
     for (int i = 0; i < 64; i++) {
-        if (cpu->registers[i] != 0 && i!=64 && i!=65) {
+        if (i!=64 && i!=65) {
             fprintf(output_file, "R%d: %d\n", i, cpu->registers[i]);  // Print as signed integer
         }
     }
