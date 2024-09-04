@@ -64,6 +64,10 @@ class CPUSimulatorIDE(ThemedTk):
         menubar.add_cascade(label="View", menu=view_menu)
         view_menu.add_command(label="Toggle Dark Mode", command=self.toggle_dark_mode)
 
+        help_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="Help", command=self.create_help_window)
+
     def setup_ui(self):
         self.paned_window = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
         self.paned_window.pack(fill=tk.BOTH, expand=1)
@@ -275,6 +279,58 @@ class CPUSimulatorIDE(ThemedTk):
         # Apply syntax highlighting after toggling the mode
         self.syntax_highlight()
 
+    def create_help_window(self):
+        help_window = tk.Toplevel(self)
+        help_window.title("Help")
+        help_window.geometry("600x400")
+        help_window.transient(self)  # Make it a floating window
+        help_window.resizable(False, False)
+
+        help_text = (
+            "Instruction Set Architecture:\n"
+            "1. Instruction Size: 16 bits\n"
+            "2. Instruction Types: 2\n"
+            "   - R-Format (Opcode: 4 bits, R1: 6 bits, R2: 6 bits)\n"
+            "   - I-Format (Opcode: 6 bits, R1: 6 bits, Immediate: 4 bits)\n\n"
+            "Instruction Count: 12\n"
+            "   - The opcodes are from 0 to 11 according to the instructions in the following table:\n\n"
+            "Operations:\n"
+            "1. ADD R1, R2        : R1 = R1 + R2 (Adds the value in R2 to R1)\n"
+            "2. SUB R1, R2        : R1 = R1 - R2 (Subtracts the value in R2 from R1)\n"
+            "3. MUL R1, R2        : R1 = R1 * R2 (Multiplies R1 by R2)\n"
+            "4. MOVI R1, IMM      : R1 = IMM (Moves an immediate value into R1)\n"
+            "5. BEQZ R1, IMM      : If R1 == 0, PC = PC + 1 + IMM (Branches if R1 is zero)\n"
+            "6. ANDI R1, IMM      : R1 = R1 & IMM (Bitwise AND between R1 and IMM)\n"
+            "7. EOR R1, R2        : R1 = R1 ⊕ R2 (Bitwise XOR between R1 and R2)\n"
+            "8. BR R1, R2         : PC = R1 || R2 (Branches to address formed by concatenating R1 and R2)\n"
+            "9. SAL R1, IMM       : R1 = R1 << IMM (Arithmetic left shift of R1 by IMM bits)\n"
+            "10. SAR R1, IMM      : R1 = R1 >> IMM (Arithmetic right shift of R1 by IMM bits)\n"
+            "11. LDR R1, ADDRESS  : R1 = MEM[ADDRESS] (Loads value from memory into R1)\n"
+            "12. STR R1, ADDRESS  : MEM[ADDRESS] = R1 (Stores value from R1 into memory)\n\n"
+            "Registers:\n"
+            "   - R1 to R63 are valid registers. Avoid using R0.\n"
+            "   - Registers are 8-bit signed integers, with values ranging from -128 to 127.\n\n"
+            "Immediate Values:\n"
+            "   - Immediate values in I-Format instructions are 4-bit signed integers.\n"
+            "   - The value range for immediate values is -8 to 7."
+        )
+
+
+        help_textbox = scrolledtext.ScrolledText(help_window, wrap=tk.WORD, font=("Consolas", 10), state='normal')
+        help_textbox.insert(tk.END, help_text)
+        help_textbox.config(state='disabled')  # Make it read-only
+        help_textbox.pack(fill=tk.BOTH, expand=1, padx=10, pady=10)
+
+        self.sync_help_window_with_theme(help_window, help_textbox)
+
+    def sync_help_window_with_theme(self, help_window, help_textbox):
+        if self.dark_mode:
+            help_window.configure(bg="#2f2f2f")
+            help_textbox.configure(bg="#2f2f2f", fg="white", insertbackground="white")
+        else:
+            help_window.configure(bg="white")
+            help_textbox.configure(bg="white", fg="black", insertbackground="black")
+
     def open_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
         if file_path:
@@ -344,7 +400,6 @@ class CPUSimulatorIDE(ThemedTk):
     def status_bar(self):
         status = ttk.Label(self, text="CPU Simulator IDE - Ready", anchor=tk.W)
         status.pack(side=tk.BOTTOM, fill=tk.X)
-
 
 if __name__ == "__main__":
     app = CPUSimulatorIDE()
